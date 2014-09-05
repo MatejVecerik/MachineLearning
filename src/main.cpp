@@ -6,8 +6,18 @@
 #define PRINT(a) {}
 #endif
 
+double SQ(double a) {return a * a;} 
+
 // Best: 10   130.390656
 // Best: 150   38.940434  --16380 epochs, training speed = 1e-4, dw_decay_time = 1000
+
+/*
+ Comparing non-lin functions: 50 hidden neurons
+ Geom: 5.208333
+ Act: 4.575000
+ Sigm:
+
+*/
 
 class NeuralNetwork {
   float training_speed;
@@ -26,18 +36,20 @@ class NeuralNetwork {
   vector<float> err;
   vector<float> errf;
   float NonLinFunc(float a) const {
-//    return 1 - 2/(1 + exp(a));
+    return 1 - 2/(1 + exp(a));
     if (a <= 0)
       return 0;
     else
       return a;
+//      return 1/(1 + 1/a);
   }
   float NonLinFuncD(float a) const {
-//    return a * (1 - a);
+    return a * (1 - a);
     if (a <= 0)
       return 0;
     else
       return 1;
+//      return (a - 1) * (a - 1);
   }
   void Zero() {
     for(int i = 0; i < n3; i++) {
@@ -61,13 +73,13 @@ class NeuralNetwork {
     LOG_HERE();
     for(int i = 0; i < w1.size(); i++) {
       if (rand() % 50 == 0) {
-        w1[i] = randf() * 1;
+        w1[i] = SQ(SQ(randf())) * 0.4;
         dw1[i] = 0;
       }
     }
     for(int i = 0; i < w2.size(); i++) {
       if (rand() % 50 == 0) {
-        w2[i] = randf() * 0.03;
+        w2[i] = SQ(SQ(randf())) * 0.01;
         dw2[i] = 0;
       }
     }
@@ -216,12 +228,12 @@ class NeuralNetwork {
         sw1 += w1[i * n2 + j];
         ww1 += w1[i * n2 + j] * w1[i * n2 + j];
       }
-    for(int k = 0; k < n1; k++)
+    for(int k = 0; k < n3; k++)
       for(int j = 0; j < n2; j++) {
-        sw1 += w1[k * n2 + j];
-        ww1 += w1[k * n2 + j] * w1[k * n2 + j];
+        sw2 += w2[k * n2 + j];
+        ww2 += w2[k * n2 + j] * w2[k * n2 + j];
       }
-    printf("w1: avg: %lf rms: %lf  w2: avg: %lf rms: %lf\n", sw1 / n1 / n2, sqrt(ww1 / n1 / n2), sw2 / n1 / n2, sqrt(ww2 / n3 / n2));
+    printf("w1: avg: %e rms: %e  w2: avg: %e rms: %e\n", sw1 / n1 / n2, sqrt(ww1 / n1 / n2), sw2 / n1 / n2, sqrt(ww2 / n3 / n2));
   }
 };
 
@@ -371,7 +383,7 @@ void LearnPictures() {
 //  pics[0].PrintStats();
 */
 
-  double training_speed = 1e-2;
+  double training_speed = 3e-2;
   double training_speed_factor = sqrt(sqrt(10));
   double training_speed_max = 1;
   int training_not_saved_for = 0;
@@ -381,8 +393,8 @@ void LearnPictures() {
   
   fprintf(stderr, "%s: %3d: Creating neural network\n", __FILE__, __LINE__);
   LOG_HERE();
-  NeuralNetwork nn(pics[0].GrayData().size(), 500, pics[0].LabelData().size(), training_speed, 1);
-  nn.Load("model.dat");
+  NeuralNetwork nn(pics[0].GrayData().size(), 50, pics[0].LabelData().size(), training_speed, 1);
+//  nn.Load("model.dat");
   LOG_HERE();
   float lowest_epoch_error = Eval(nn, eval, true);
 
